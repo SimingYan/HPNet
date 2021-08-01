@@ -26,11 +26,9 @@ class ABCDataset(data.Dataset):
         
         if 'train' in filename:
             self.augment = self.opt.augment
-            self.align_canonical = self.opt.align_canonical
             self.if_normal_noise = self.opt.if_normal_noise
         else:
             self.augment = 0
-            self.align_canonical = self.opt.align_canonical
             self.if_normal_noise = 0
 
        
@@ -44,7 +42,6 @@ class ABCDataset(data.Dataset):
     def __getitem__(self, index):
 
         ret_dict = {}
-        #index = 10000
         index = index % self.tru_len
         
         data_file = os.path.join(self.root, self.data_list[index] + '.h5')
@@ -55,6 +52,7 @@ class ABCDataset(data.Dataset):
             normals = np.array(hf.get("normals"))
             primitives = np.array(hf.get("prim"))
             primitive_param = np.array(hf.get("T_param"))
+        
         if self.augment:
             points = self.augment_routines[np.random.choice(np.arange(5))](points[None,:,:])[0]
 
@@ -64,21 +62,7 @@ class ABCDataset(data.Dataset):
                 a_min=-0.01,
                 a_max=0.01)
             points = points + noise.astype(np.float32)
-
-        if self.align_canonical:
-            S, U = self.pca_numpy(points)
-            smallest_ev = U[:, np.argmin(S)]
-            R = self.rotation_matrix_a_to_b(smallest_ev, np.array([1, 0, 0]))
-            # rotate input points such that the minor principal
-            # axis aligns with x axis.
-            points = (R @ points.T).T
-            normals = (R @ normals.T).T
-            
-        if 1:
-            std = np.max(points, 0) - np.min(points, 0)
-
-            points = points / (np.max(std) + EPS)
-       
+      
         ret_dict['gt_pc'] = points
         ret_dict['gt_normal'] = normals
         ret_dict['T_gt'] = primitives.astype(int)
@@ -107,33 +91,6 @@ class ABCDataset(data.Dataset):
 
     def __len__(self):
         return self.len
-
-    def pca_numpy(self, X):
-        S, U = np.linalg.eig(X.T @ X)
-        return S, U
-
-    def rotation_matrix_a_to_b(self, A, B):
-        """
-        Finds rotation matrix from vector A in 3d to vector B
-        in 3d.
-        B = R @ A
-        """
-        cos = np.dot(A, B)
-        sin = np.linalg.norm(np.cross(B, A))
-        u = A
-        v = B - np.dot(A, B) * A
-        v = v / (np.linalg.norm(v) + EPS)
-        w = np.cross(B, A)
-        w = w / (np.linalg.norm(w) + EPS)
-        F = np.stack([u, v, w], 1)
-        G = np.array([[cos, -sin, 0], [sin, cos, 0], [0, 0, 1]])
-        # B = R @ A
-        try:
-            R = F @ G @ np.linalg.inv(F)
-        except:
-            R = np.eye(3, dtype=np.float32)
-        return R
-
 
 if __name__ == '__main__':
 

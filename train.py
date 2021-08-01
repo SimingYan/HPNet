@@ -101,7 +101,6 @@ class MyTrainer(Trainer):
             spec_cluster_pred = mean_shift(spectral_embedding, bandwidth=self.opt.bandwidth)
             cluster_pred = spec_cluster_pred
             miou = compute_miou(spec_cluster_pred, I_gt)
-          
             loss_dict['miou'] = miou
             miou = compute_type_miou_abc(type_per_point, T_gt, cluster_pred, I_gt)
             loss_dict['type_miou'] = miou

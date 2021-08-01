@@ -105,10 +105,6 @@ parser.add_argument('--augment',
                     type=int,
                     default=0,
                     help='whether do data augment')
-parser.add_argument('--align_canonical',
-                    type=int,
-                    default=1,
-                    help='whether do data align canonical')
 parser.add_argument('--if_normal_noise',
                     type=int,
                     default=0,

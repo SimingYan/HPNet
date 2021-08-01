@@ -111,7 +111,6 @@ def random_scale_point_cloud(batch_data, scale_low=0.8, scale_high=1.2):
         batch_data[batch_index, :, :] *= scales[batch_index]
     return batch_data
 
-
 class Augment:
     def __init__(self, ):
         pass

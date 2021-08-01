@@ -13,7 +13,7 @@ The main experiments are implemented on pytorch 1.7.0, tensorflow 1.15.0. Please
 ### Dataset
 
 #### ABCParts Dataset
-ABCParts Dataset is made by [ParseNet](https://arxiv.org/abs/2003.12181). Please download the dataset [here](https://drive.google.com/file/d/1jJ6hbzkwoqJlVIHDB7ftmARZTm6D5tQg/view?usp=sharing)(69G) and put it under data/ABC folder.
+ABCParts Dataset is made by [ParseNet](https://arxiv.org/abs/2003.12181). Please download the dataset [here](https://drive.google.com/file/d/1qH-1A8p3jDtTxS2i-423AZTjiBu9RGL1/view?usp=sharing)(69G) and put it under data/ABC folder.
 
 ### Usage
 
