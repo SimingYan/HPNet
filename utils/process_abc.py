@@ -5,11 +5,36 @@ import h5py
 import argparse
 from fitting_func import *
 
+def pca_numpy(X):
+    S, U = np.linalg.eig(X.T @ X)
+    return S, U
+
+def rotation_matrix_a_to_b(A, B):
+    """
+    Finds rotation matrix from vector A in 3d to vector B
+    in 3d.
+    B = R @ A
+    """
+    cos = np.dot(A, B)
+    sin = np.linalg.norm(np.cross(B, A))
+    u = A
+    v = B - np.dot(A, B) * A
+    v = v / (np.linalg.norm(v) + EPS)
+    w = np.cross(B, A)
+    w = w / (np.linalg.norm(w) + EPS)
+    F = np.stack([u, v, w], 1)
+    G = np.array([[cos, -sin, 0], [sin, cos, 0], [0, 0, 1]])
+    # B = R @ A
+    try:
+        R = F @ G @ np.linalg.inv(F)
+    except:
+        R = np.eye(3, dtype=np.float32)
+    return R
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--data_path', type=str, default='/path/to/parsenet-codebase/data/shapes')
-parser.add_argument('--save_path', type=str, default='../data/ABC')
+parser.add_argument('--save_path', type=str, default='/path/to/saved/dir')
 
 args = parser.parse_args()
 
@@ -34,12 +59,22 @@ for i in range(len_):
     filename = '%05d.h5' % i
 
     P = new_gt_points[i]
+
+    # align
+    S, U = pca_numpy(P)
+    smallest_ev = U[:, np.argmin(S)]
+    R = rotation_matrix_a_to_b(smallest_ev, np.array([1, 0, 0]))
+    # rotate input points such that the minor principal
+    # axis aligns with x axis.
+    P = (R @ P.T).T
+
     # normalize
     std = np.max(P, 0) - np.min(P, 0)
     P = P / (np.max(std) + EPS)
-   
+    
     I_gt = gt_labels[i]
     normal_gt = gt_normals[i]
+    normal_gt = (R @ normal_gt.T).T
     
     n_instances = I_gt.max() + 1
 
@@ -140,4 +175,3 @@ for i in range(len_):
     wf.create_dataset('points', data=P)
     wf.create_dataset('normals',  data=normal_gt)
     wf.create_dataset('T_param',  data=primitive_param)
-
